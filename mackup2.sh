@@ -6,29 +6,64 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 NC='\033[0m' # No Color
 
-if ! command -v unison &> /dev/null; then
-    printf "${RED}Unison is not installed. Please install it before running mackup2.${NC}\n"
-    exit 1
-fi
-if ! command -v unison-fsmonitor &> /dev/null; then
-    printf "${RED}Unison-fsmonitor is not installed. Please install it before running mackup2.${NC}\n"
-    exit 1
-fi
+check_dependencies() {
+    if ! command -v unison &> /dev/null; then
+        printf "${RED}Unison is not installed. Please install it before running mackup2.${NC}\n"
+        exit 1
+    fi
+    if ! command -v unison-fsmonitor &> /dev/null; then
+        printf "${RED}Unison-fsmonitor is not installed. Please install it before running mackup2.${NC}\n"
+        exit 1
+    fi
 
 
-if ! mkdir -p "$HOME/Library/Application Support/mackup2" &> /dev/null; then
-    printf "${RED}Error creating /var/run/. Aborting.${NC}\n"
-    exit 1
-fi
-if [ -e "$HOME/Library/Application Support/mackup2/mackup2.pid" ]; then
-    printf "${RED}Error, mackup2.pid already exists. Aborting.${NC}\n"
-    exit 1
-fi
-/bin/echo $$ > "$HOME/Library/Application Support/mackup2/mackup2.pid"
+    if ! mkdir -p "$HOME/Library/Application Support/mackup2" &> /dev/null; then
+        printf "${RED}Error creating /var/run/. Aborting.${NC}\n"
+        exit 1
+    fi
+    if [ -e "$HOME/Library/Application Support/mackup2/mackup2.pid" ]; then
+        printf "${RED}Error, mackup2.pid already exists. Aborting.${NC}\n"
+        exit 1
+    fi
+}
 
-cleanup() {
+check_configs() {
+
+    mkdir -p ~/.mackup2
+    # Check if any files exist in the ~/.mackup2 directory
+    if [ -z "$(ls -A ~/.mackup2)" ]; then
+        echo "No files found in ~/.mackup2 directory. Exiting."
+        exit 0
+    fi
+}
+
+create_pid() {
+    /bin/echo $$ > "$HOME/Library/Application Support/mackup2/mackup2.pid"
+}
+remove_pid() {
     rm "$HOME/Library/Application Support/mackup2/mackup2.pid"
 }
+
+kill_processes() {
+    for pid in "${pids[@]}"; do
+        kill "$pid" 2>/dev/null
+    done
+}
+
+start_process() {
+    # Iterate over the .cfg files in the ~/.mackup2 directory
+    for config_file in ~/.mackup2/*.cfg; do
+        if [[ -f "$config_file" ]]; then
+            parse_config "$config_file"
+        fi
+    done
+}
+
+cleanup() {
+    kill_processes
+    remove_pid
+}
+
 trap cleanup EXIT
 
 # Define the iCloud Drive location
@@ -131,27 +166,16 @@ parse_config() {
             fi            
             echo -e "Syncing ${GREEN}$source_path${NC} <-> ${GREEN}$destination_path${NC}"
             nohup unison -auto -batch -repeat watch -terse -prefer "$destination_path" "$source_path" "$destination_path" | tee -a "$HOME/Library/Logs/mackup2/$app_name.log" &
-            pids+=($!)  # Append PID to the array
-            # Log PID for debugging
-            #echo "PID for $source_path: $!"
+            pids+=($!)
         fi
 
     done < "$config_file"
 }
 
-mkdir -p ~/.mackup2
-# Check if any files exist in the ~/.mackup2 directory
-if [ -z "$(ls -A ~/.mackup2)" ]; then
-    echo "No files found in ~/.mackup2 directory. Exiting."
-    exit 0
-fi
-
-# Iterate over the .cfg files in the ~/.mackup2 directory
-for config_file in ~/.mackup2/*.cfg; do
-    if [[ -f "$config_file" ]]; then
-        parse_config "$config_file"
-    fi
-done
+check_dependencies
+check_configs
+create_pid
+start_process
 
 #TODO: if any of the pids die, the entire script should restart
 wait "${pids[@]}"
