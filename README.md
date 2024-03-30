@@ -1,6 +1,6 @@
-## Mackup 2
+## Mackup2
 
-Proof of concept recreation of the [Ira/Mackup](https://github.com/lra/mackup/blob/master/mackup/applications/git.cfg) application
+Fork of the [Ira/Mackup](https://github.com/lra/mackup/blob/master/mackup/applications/git.cfg) application written entirely in bash.
 
 ### Why this exists
 
@@ -11,10 +11,10 @@ mackup2 is a bash script that is largely compatible with the extensive library o
 
 The magic behind `mackup` was creating symlinks between `~/Libarary/Application Support/foo` directory and icloud/Dropbox/Google Drive. 
 
-`mackup2` replicates this behavior by syncing folder/files to icloud/Dropbox/Google Drive instead of symlinking. 
-`mackup2` should be completely invisble to sandboxed applications. 
+`mackup2` replicates this behavior by syncing folder/files to iCloud/Dropbox/Google Drive instead of symlinking. 
+`mackup2` should be completely invisble to sandboxed applications.
 
-⚠️ This code is beta, proceede with caution!
+⚠️ This code is `beta`, proceede with caution!
 
 
 ## Preflight
