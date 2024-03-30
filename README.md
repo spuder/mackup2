@@ -6,12 +6,29 @@ Proof of concept recreation of the [Ira/Mackup](https://github.com/lra/mackup/bl
 
 OSX Sonoma changed how sandboxing works, so most applications [can no longer follow symlinks](https://github.com/lra/mackup/issues/1924#issuecomment-2026186178) 😢
 
-Solution is to copy files back and forth instead of symlinking
 
-⚠️ This code is highly expirimental, use with extreem caution ⚠️
+mackup2 is a bash script that is largely compatible with the extensive library of [mackup `.cfg` files](https://github.com/lra/mackup/tree/master/mackup/applications)
 
+The magic behind `mackup` was creating symlinks between `~/Libarary/Application Support/foo` directory and icloud/Dropbox/Google Drive. 
+
+`mackup2` replicates this behavior by syncing folder/files to icloud/Dropbox/Google Drive instead of symlinking. 
+`mackup2` should be completely invisble to sandboxed applications. 
+
+⚠️ This code is beta, proceede with caution!
+
+
+## Preflight
+
+Before using `mackup2`, you must competely remove all symlinks that `mackup` created. 
+If you still have mackup installed, the simplest solution is to run the following: 
+
+```bash
+mackup uninstall
+```
 
 ## Setup
+
+Since mackup2 is written in bash, it requires 2 libraries. They can easily be installed with [homebrew](https://brew.sh)
 
 ```bash
 brew install unison
@@ -20,7 +37,13 @@ brew install autozimu/homebrew-formulas/unison-fsmonitor
 
 ## Usage
 
-1. Manually copy the applications you wish to sync to `~/.mackup2/`
+1. Manually copy the application config files you wish to sync to `~/.mackup2/`
+
+    e.g. 
+    ````bash
+    mkdir ~/.mackup2
+    cp ~/.mackup/git.cfg ~/.mackup2/git.cfg
+    ```
 
 2. Run mackup
 
@@ -31,6 +54,12 @@ brew install autozimu/homebrew-formulas/unison-fsmonitor
 
     To stop syncing, press `ctrl + c`
 
+
+    (Optional, run mackup in the background)
+    ```bash
+    ./mackup.sh &
+    ```
+
 3. Report back your success/failures
 
 If you have an application that works, please open a pull request to add it to [mackup2/applications](mackup2/applications/)
@@ -38,7 +67,7 @@ If you have an application that works, please open a pull request to add it to [
 
 ## Logging
 
-Logs are sent with `logger`. To view logs, open `console` from the utilities directory and search for `mackup2`
+Logs are stored in `~/Library/Logs/mackup2`
 
 ## How it works
 
@@ -46,14 +75,14 @@ This script is designed to be as compatible with mackup config files as possible
 
 For every file listed under `[configuration_files]`, mackup2 will create a syncronization job for each file and folder using [unison](https://github.com/bcpierce00/unison)
 
-1. It reads ~/.mackup/*.cfg files
+1. It reads `~/.mackup/*.cfg` files
 2. For each config file, read the app name and `[configuration_files]` section
 3. For each file under `[configuration_files]` this script starts a new `unison -watch` process
 
 
 ### Bullsh*t, what does it really do to my files
 
-👀 Here is a simple example
+👀 Here is a simple example to emulate what `mackup2` is doing under the hood
 
 Create 2 directories:
 ```
@@ -63,7 +92,7 @@ mkdir /tmp/bar
 
 Manually start unison to watch the 2 directories
 ```
-unison -auto -batch -repeat watch /tmp/foo /tmp/bar &
+unison -auto -batch -repeat watch /tmp/foo /tmp/bar
 ```
 
 Unison creates a 2 way syncronization between the folders. Any file added to one, will be instantly copied to the other
@@ -119,6 +148,6 @@ Currently supported features:
 ## Troubleshooting
 
 
-A file/folder isn't syncronizing
+A file/folder isn't synchronizing
 
 Look for a hidden `.unison..foobar.tmp` file in the same directory as the source file, then delete it. 
