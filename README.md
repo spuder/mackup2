@@ -110,11 +110,28 @@ rm -r /tmp/bar
 ```
 
 
+## Design
+
+The main magic of `mackup2` is this line of code
+
+```bash
+nohup unison -auto -batch -repeat watch -terse -prefer "$destination_path" "$source_path" "$destination_path" | tee -a "$HOME/Library/Logs/mackup2/$app_name.log" &
+```
+
+Note the flat `-prefer "$destination_path"`. 
+This means that if a conflict happens between icloud and local, `unision` will prefer the icloud version.
+This will ensure that a new computer won't clobber the configs of exiting devices. 
+
+
 ## Limitations
+
+Because the syncing process requires a daemon to be constantly running, you must restart `mackup2` on _all_ machines when modifying a config file. 
+
+Eventually `mackup2` will be 100% compatible with `mackup`. See current compatiblity chart below.
 
 🚧 Features are still in progress. 🚧
 
-Currently supported features: 
+Currently supported features: ()
 
 ### OS
 
@@ -143,7 +160,11 @@ Currently supported features:
 
 - ⚠️ Assumes all files are relative to `~/.`
 - ❌ Prompt user before overwriting files
+- ❌ Automated restarting of daemon
 
+## Development
+
+Pull Requests Welcome! 
 
 ## Troubleshooting
 
