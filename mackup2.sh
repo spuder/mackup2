@@ -28,7 +28,6 @@ check_dependencies() {
 }
 
 check_configs() {
-
     mkdir -p ~/.mackup2
     # Check if any files exist in the ~/.mackup2 directory
     if [ -z "$(ls -A ~/.mackup2)" ]; then
@@ -64,7 +63,14 @@ cleanup() {
     remove_pid
 }
 
+restart() {
+    echo "Restarting mackup2..."
+    kill_processes
+    start_process
+}
+
 trap cleanup EXIT
+trap restart SIGHUP
 
 # Define the iCloud Drive location
 icloud_drive_path="$HOME/Library/Mobile Documents/com~apple~CloudDocs/Mackup"

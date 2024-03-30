@@ -45,25 +45,21 @@ brew install autozimu/homebrew-formulas/unison-fsmonitor
     cp ~/.mackup/git.cfg ~/.mackup2/git.cfg
     ```
 
-2. Run mackup
+2. Install mackup2
 
     ```bash
-    chmod +x mackup2.sh
-    ./mackup2.sh
+    make install
     ``` 
 
-    To stop syncing, press `ctrl + c`
+3. Start mackup2
 
-
-    (Optional, run mackup in the background)
     ```bash
-    ./mackup.sh &
+    /usr/local/bin/mackup2-watchdog
     ```
 
-3. Report back your success/failures
+4. Report back your success/failures
 
 If you have an application that works, please open a pull request to add it to [mackup2/applications](mackup2/applications/)
-
 
 ## Logging
 
